@@ -1,0 +1,16 @@
+class Solution {
+    public int distinctSubseqII(String s) {
+        int MOD = 1_000_000_007;
+        long dp = 1; 
+        HashMap<Character, Long> last = new HashMap<>();
+        for (char ch : s.toCharArray()) {
+            long old = dp;
+            dp = (dp * 2) % MOD;
+            if (last.containsKey(ch)) {
+                dp = (dp - last.get(ch) + MOD) % MOD;
+            }
+            last.put(ch, old);
+        }
+        return (int)((dp - 1 + MOD) % MOD); 
+    }
+}
