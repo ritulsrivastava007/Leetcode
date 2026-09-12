@@ -1,0 +1,131 @@
+import java.util.*;
+
+class Solution {
+
+    static class State {
+        long score;
+        List<Integer> indices;
+
+        State(long score, List<Integer> indices) {
+            this.score = score;
+            this.indices = indices;
+        }
+    }
+
+    public int[] maximumWeight(List<List<Integer>> intervals) {
+
+        int n = intervals.size();
+
+        int[][] arr = new int[n][4];
+
+        for (int i = 0; i < n; i++) {
+            arr[i][0] = intervals.get(i).get(0);
+            arr[i][1] = intervals.get(i).get(1);
+            arr[i][2] = intervals.get(i).get(2);
+            arr[i][3] = i;
+        }
+
+        Arrays.sort(arr, (a, b) -> {
+            if (a[0] != b[0])
+                return Integer.compare(a[0], b[0]);
+            return Integer.compare(a[1], b[1]);
+        });
+
+        int[] starts = new int[n];
+
+        for (int i = 0; i < n; i++) {
+            starts[i] = arr[i][0];
+        }
+
+        int[] next = new int[n];
+
+        for (int i = 0; i < n; i++) {
+            next[i] = upperBound(starts, arr[i][1]);
+        }
+
+        State[][] dp = new State[n + 1][5];
+
+        for (int i = 0; i <= n; i++) {
+            dp[i][0] = new State(0, new ArrayList<>());
+        }
+
+        for (int k = 1; k <= 4; k++) {
+            dp[n][k] = new State(0, new ArrayList<>());
+        }
+
+        for (int i = n - 1; i >= 0; i--) {
+            for (int k = 1; k <= 4; k++) {
+
+                State skip = dp[i + 1][k];
+
+                State nextState = dp[next[i]][k - 1];
+
+                List<Integer> takeList =
+                        new ArrayList<>(nextState.indices);
+
+                takeList.add(arr[i][3]);
+                Collections.sort(takeList);
+
+                State take = new State(
+                        arr[i][2] + nextState.score,
+                        takeList
+                );
+
+                dp[i][k] = better(skip, take);
+            }
+        }
+
+        List<Integer> answer = dp[0][4].indices;
+
+        int[] result = new int[answer.size()];
+
+        for (int i = 0; i < answer.size(); i++) {
+            result[i] = answer.get(i);
+        }
+
+        return result;
+    }
+
+    static int upperBound(int[] arr, int target) {
+
+        int left = 0;
+        int right = arr.length;
+
+        while (left < right) {
+
+            int mid = left + (right - left) / 2;
+
+            if (arr[mid] <= target)
+                left = mid + 1;
+            else
+                right = mid;
+        }
+
+        return left;
+    }
+
+    static State better(State a, State b) {
+
+        if (a.score != b.score)
+            return a.score > b.score ? a : b;
+
+        return compareLexicographically(a.indices, b.indices) <= 0
+                ? a
+                : b;
+    }
+
+    static int compareLexicographically(
+            List<Integer> a,
+            List<Integer> b) {
+
+        int n = Math.min(a.size(), b.size());
+
+        for (int i = 0; i < n; i++) {
+            if (!a.get(i).equals(b.get(i))) {
+                return Integer.compare(a.get(i), b.get(i));
+            }
+        }
+
+        return Integer.compare(a.size(), b.size());
+    }
+}
