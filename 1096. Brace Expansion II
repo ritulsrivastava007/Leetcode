@@ -1,0 +1,59 @@
+import java.util.*;
+class Solution {
+    int index = 0;
+
+    public List<String> braceExpansionII(String expression) {
+        Set<String> result = parse(expression);
+
+        List<String> ans = new ArrayList<>(result);
+        Collections.sort(ans);
+
+        return ans;
+    }
+
+    Set<String> parse(String s) {
+        Set<String> result = new HashSet<>();
+
+        while (index < s.length() && s.charAt(index) != '}') {
+
+            if (s.charAt(index) == '{') {
+                index++;
+                Set<String> group = parse(s);
+                index++;
+
+                result = combine(result, group);
+
+            } else if (s.charAt(index) == ',') {
+                index++;
+                
+                Set<String> next = parse(s);
+                result.addAll(next);
+                return result;
+
+            } else {
+                Set<String> letter = new HashSet<>();
+                letter.add(String.valueOf(s.charAt(index)));
+                index++;
+
+                result = combine(result, letter);
+            }
+        }
+
+        return result;
+    }
+
+    Set<String> combine(Set<String> a, Set<String> b) {
+        if (a.isEmpty()) return new HashSet<>(b);
+        if (b.isEmpty()) return new HashSet<>(a);
+
+        Set<String> result = new HashSet<>();
+
+        for (String x : a) {
+            for (String y : b) {
+                result.add(x + y);
+            }
+        }
+
+        return result;
+    }
+}
