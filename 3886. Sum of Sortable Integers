@@ -1,0 +1,57 @@
+class Solution {
+public int sortableIntegers(int[] nums) {
+int n = nums.length;
+int ans = 0;
+
+    for (int k = 1; k <= n; k++) {
+        if (n % k != 0) {
+            continue;
+        }
+
+        boolean valid = true;
+        int prev = Integer.MIN_VALUE;
+
+        for (int start = 0; start < n; start += k) {
+            int drops = 0;
+            int dropIndex = -1;
+
+            for (int i = start; i < start + k - 1; i++) {
+                if (nums[i] > nums[i + 1]) {
+                    drops++;
+                    dropIndex = i;
+                }
+            }
+
+            if (drops > 1) {
+                valid = false;
+                break;
+            }
+
+            int first = nums[start];
+            int last = nums[start + k - 1];
+
+            if (drops == 1 && last > first) {
+                valid = false;
+                break;
+            }
+
+            int blockFirst = drops == 1 ? nums[dropIndex + 1] : first;
+            int blockLast = drops == 1 ? nums[dropIndex] : last;
+
+            if (blockFirst < prev) {
+                valid = false;
+                break;
+            }
+
+            prev = blockLast;
+        }
+
+        if (valid) {
+            ans += k;
+        }
+    }
+
+    return ans;
+}
+
+}
