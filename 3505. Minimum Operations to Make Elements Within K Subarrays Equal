@@ -1,0 +1,160 @@
+import java.util.*;
+
+class Solution {
+
+    class MedianWindow {
+
+        TreeMap<Integer, Integer> low = new TreeMap<>();
+        TreeMap<Integer, Integer> high = new TreeMap<>();
+
+        long sumLow = 0;
+        long sumHigh = 0;
+
+        int sizeLow = 0;
+        int sizeHigh = 0;
+
+        int target;
+
+        MedianWindow(int x) {
+            target = (x + 1) / 2;
+        }
+
+        void addLow(int val) {
+            low.merge(val, 1, Integer::sum);
+            sumLow += val;
+            sizeLow++;
+        }
+
+        void addHigh(int val) {
+            high.merge(val, 1, Integer::sum);
+            sumHigh += val;
+            sizeHigh++;
+        }
+
+        void removeLow(int val) {
+            low.compute(val, (key, count) ->
+                count == 1 ? null : count - 1
+            );
+
+            sumLow -= val;
+            sizeLow--;
+        }
+
+        void removeHigh(int val) {
+            high.compute(val, (key, count) ->
+                count == 1 ? null : count - 1
+            );
+
+            sumHigh -= val;
+            sizeHigh--;
+        }
+
+        void rebalance() {
+
+            while (sizeLow > target) {
+                int val = low.lastKey();
+                removeLow(val);
+                addHigh(val);
+            }
+
+            while (sizeLow < target) {
+                if (high.isEmpty()) {
+                    break;
+                }
+
+                int val = high.firstKey();
+                removeHigh(val);
+                addLow(val);
+            }
+
+            if (low.isEmpty() && !high.isEmpty()) {
+                int val = high.firstKey();
+                removeHigh(val);
+                addLow(val);
+            }
+        }
+
+        void add(int val) {
+
+            if (low.isEmpty() || val <= low.lastKey()) {
+                addLow(val);
+            } else {
+                addHigh(val);
+            }
+
+            rebalance();
+        }
+
+        void remove(int val) {
+
+            if (low.containsKey(val)) {
+                removeLow(val);
+            } else {
+                removeHigh(val);
+            }
+
+            rebalance();
+        }
+
+        long getCost() {
+
+            long median = low.lastKey();
+
+            return median * sizeLow - sumLow
+                 + sumHigh - median * sizeHigh;
+        }
+    }
+
+    public long minOperations(int[] nums, int x, int k) {
+
+        int n = nums.length;
+
+        int m = n - x + 1;
+
+        long[] cost = new long[m];
+
+        MedianWindow window = new MedianWindow(x);
+
+        for (int i = 0; i < x; i++) {
+            window.add(nums[i]);
+        }
+
+        cost[0] = window.getCost();
+
+        for (int i = x; i < n; i++) {
+
+            window.remove(nums[i - x]);
+            window.add(nums[i]);
+
+            cost[i - x + 1] = window.getCost();
+        }
+
+        long INF = Long.MAX_VALUE / 4;
+
+        long[] prev = new long[n + 1];
+
+        for (int j = 1; j <= k; j++) {
+
+            long[] curr = new long[n + 1];
+
+            Arrays.fill(curr, INF);
+
+            for (int i = 1; i <= n; i++) {
+
+                curr[i] = curr[i - 1];
+
+                if (i >= x && prev[i - x] != INF) {
+
+                    curr[i] = Math.min(
+                        curr[i],
+                        prev[i - x] + cost[i - x]
+                    );
+                }
+            }
+
+            prev = curr;
+        }
+
+        return prev[n];
+    }
+}
