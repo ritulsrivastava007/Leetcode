@@ -1,0 +1,45 @@
+class Solution {
+    class buildhash{
+        long pow[], base = 131, mod = 1000000007L, hash[];
+        buildhash(int n, int []nums){
+            pow = new long[n+1];
+            hash = new long[n+1];
+            pow[0] = 1;
+            for(int i=0;i<n;i++){
+                pow[i+1] = (pow[i]*base)%mod;
+                hash[i+1] = (hash[i]*base + nums[i])%mod;
+            }
+        }
+        boolean check(int len, int n){
+            HashMap<Long, Integer> map = new HashMap<>();
+            for(int i=0;i+len<=n;i++){
+                int left = i;
+                int right = i+len-1;
+                long val = (hash[right+1]-(hash[left]*pow[len])%mod +mod)%mod;
+                map.put(val, map.getOrDefault(val, 0)+1);
+            }
+            for(int i : map.values()){
+                if(i == 1){
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+    public int smallestUniqueSubarray(int[] nums) {
+        int n= nums.length;
+        buildhash bsh = new buildhash(n, nums);
+        int low = 1, high = n, ans = n;
+        while(low<=high){
+            int mid = low + (high-low)/2;
+            if(bsh.check(mid, n)){
+                ans = mid;
+                high = mid-1;
+            }
+            else{
+                low = mid  + 1;
+            }
+        }
+        return ans;
+    }
+}
